@@ -1,0 +1,15 @@
+{
+  "author": "erhant",
+  "scripts": {
+    "test": "npx mocha"
+  },
+  "dependencies": {
+    "circomkit": "^0.0.14"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.1",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}
