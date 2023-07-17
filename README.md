@@ -29,18 +29,32 @@ We have the following operations defined in Brainfuck in terms of state changes 
 | 45     | `-`   | `m'[p] <== m[p] - 1`              |
 | 46     | `.`   | `out   <== m[p]`                  |
 | 44     | `,`   | `m'[p] <== in`                    |
-| 91     | `[`   | if `m[p] != 0` then `i' <== j[i]` |
-| 93     | `]`   | if `m[p] != 0` then `i' <== j[i]` |
+|        | `[`   | if `m[p] != 0` then `i' <== j[i]` |
+|        | `]`   | if `m[p] != 0` then `i' <== j[i]` |
 
 Number refers to the value returned by `charCodeAt` (in JS) for that character, yielding the ASCII value. We will treat the corresponding field elements for instruction codes.
 
 If not specified otherwise, the following happens during the state transition:
 
 - `p' <== p` data pointer stays the same
-- `i' <== i` instruction pointer is incremented
+- `i' <== i + 1` instruction pointer is incremented
 - `m'[:] <== m[:]` memory blocks stay the same
+
+If an unknown token is received, it is ignored and default behavior state transitions occur.
+
+### Looping
+
+To make looping more snark-friendly, we will replace the `[` and `]` with their respective target position in the code. For example:
+
+```bf
+  0 1 2 3 4 5 6 7 8 # position
+> + + [ + - - ] + . # input
+> + + 6 + - - 2 + . # converted
+```
 
 ## Honorable Mentions
 
 - [Typefuck](https://github.com/susisu/typefuck) is a Brainfuck interpreter using the type-system of Typescript alone.
 - [How Brainfuck Works](https://gist.github.com/roachhd/dce54bec8ba55fb17d3a) is a great Gist about Brainfuck.
+- [Brainfuck in STARK](https://neptune.cash/learn/brainfuck-tutorial/) is a quite nice example of another zkBrainfuck.
+- [Brainfuck in Golang](https://github.com/kgabis/brainfuck-go/blob/master/bf.go) is another implementation of Brainfuck in go.
