@@ -2,11 +2,15 @@ pragma circom 2.1.0;
 
 include "./vm.circom"
 
-// MEM: memory size
-// LEN: code size
-// CLK: number of clock-cycles
-template Brainfuck(MEMORY, CLOCKS) {
-  signal input code[LEN];
+template Brainfuck(CLOCKS, MEMSIZE) {
+  signal input in[CLOCKS];
+  signal input out[CLOCKS];
+  signal input i[CLOCKS];
+  signal input _i[CLOCKS];
+  signal input p[CLOCKS];
+  signal input _p[CLOCKS];
+  signal input m[MEMSIZE][CLOCKS];
+  signal input _m[MEMSIZE][CLOCKS];
 
   component vm = VM(MEM);
 

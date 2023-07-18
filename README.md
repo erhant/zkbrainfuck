@@ -43,36 +43,37 @@ yarn vm:run
     # print compiled code
 ```
 
-You may find a few example Brainfuck codes in [here](./vm/code). To run them, pass their paths via the `-p` option. By default, the VM will run `,+++++[-.]` which takes an input, increments it 5 times and then starts decrementing it, printing the value each time.
+You may find a few example Brainfuck codes in [here](./vm/sample). To run them, pass their paths via the `-path` option. By default, the VM will run `,+++++[-.]` which takes an input, increments it 5 times and then starts decrementing it, printing the value each time.
 
 ## Proving Execution
 
 Our objective with zkBrainfuck is to prove correct execution of Brainfuck while hiding our inputs. To do that, instead of writing the Brainfuck VM as a circuit itself, we will write a constraining circuit that checks the execution steps and confirm that these steps are valid for a Brainfuck program.
 
-To re-iterate what we mean here, consider a square-root circuit where given `n` it outputs `sqrt(n)`. Well, instead of doing that square-root stuff in a circuit, we could ask for an input `m` that will be output directly, and add a constraint such that `n === m * m` which makes things so much easier.
+To re-iterate what we mean here, consider a square-root circuit where given `n` it outputs `sqrt(n)`. Well, instead of doing that square-root stuff in a circuit, we could ask for an input `m` that will be output directly, and add a constraint such that `n === m * m` which makes things so much easier while still providing execution correctness.
 
 With that said, let us define the requirements for the circuit to prove a step of execution:
 
-- Current memory layout `m`
-- Next memory layout `m'`
-- Current instruction pointer `i`
-- Next instruction pointer `i'`
-- Current memory pointer `p`
-- Next memory pointer `p'`
+- Current input `in`
+- Current output `out`
+- Current & next instruction `i` and `_i`
+- Current & next memory layouts `m` and `_m`
+- Current & next memory pointers `p` and `_p`
 
-zkBrainfuck operates over numbers instead of tokens, and we want this to be as circuit-friendly as possible. For that, the following methodology is used:
+These inputs are given for **each** clock cycle. Only the the list of instructions and outputs are public, the rest are private inputs.
 
-| `op`    | Code | Operation                                          |
-| ------- | ---- | -------------------------------------------------- |
-| 0       |      | ignore                                             |
-| 1       | `>`  | `p' <== p + 1` and `i <== i + 1`                   |
-| 2       | `<`  | `p' <== p - 1` and `i <== i + 1`                   |
-| 3       | `+`  | `m'[p] <== m[p] + 1` and `i <== i + 1`             |
-| 4       | `-`  | `m'[p] <== m[p] - 1` and `i <== i + 1`             |
-| 5       | `.`  | `out   <== m[p]` and `i <== i + 1`                 |
-| 6       | `,`  | `m'[p] <== in` and `i <== i + 1`                   |
-| $i > 6$ | `[`  | if `m[p] == 0` then `i' <== op` else `i <== i + 1` |
-| $j > 6$ | `]`  | if `m[p] != 0` then `i' <== op` else `i <== i + 1` |
+zkBrainfuck operates over numbers instead of tokens, and we want this to be as circuit-friendly as possible. For that, the following methodology is used (think for each clock cycle):
+
+| `op`    | Code | Operation                                            |
+| ------- | ---- | ---------------------------------------------------- |
+| 0       |      | ignore                                               |
+| 1       | `>`  | `_p <== p + 1` and `_i <== i + 1`                    |
+| 2       | `<`  | `_p <== p - 1` and `_i <== i + 1`                    |
+| 3       | `+`  | `_m[p] <== m[p] + 1` and `_i <== i + 1`              |
+| 4       | `-`  | `_m[p] <== m[p] - 1` and `_i <== i + 1`              |
+| 5       | `.`  | `out   <== m[p]` and `_i <== i + 1`                  |
+| 6       | `,`  | `_m[p] <== in` and `_i <== i + 1`                    |
+| $i > 6$ | `[`  | if `m[p] == 0` then `_i' <== op` else `_i <== i + 1` |
+| $j > 6$ | `]`  | if `m[p] != 0` then `_i' <== op` else `_i <== i + 1` |
 
 To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with number comparisons and jump targets are safe. The circuit only has to assert that **(TODO: maybe make no-op 7 and rest be from 0..6?)**
 
