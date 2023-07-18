@@ -5,7 +5,7 @@ include "./vm.circom"
 // MEM: memory size
 // LEN: code size
 // CLK: number of clock-cycles
-template Brainfuck(MEM, LEN, CLK) {
+template Brainfuck(MEMORY, CLOCKS) {
   signal input code[LEN];
 
   component vm = VM(MEM);

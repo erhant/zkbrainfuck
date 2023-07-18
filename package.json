@@ -1,12 +1,14 @@
 {
   "author": "erhant",
+  "license": "MIT",
+  "private": true,
   "scripts": {
-    "test": "npx mocha"
-  },
-  "dependencies": {
-    "circomkit": "^0.0.14"
+    "test": "npx mocha",
+    "vm:run": "./vm/bin/main",
+    "vm:build": "cd vm && go build -o ./bin/main -ldflags \"-s -w\" main.go"
   },
   "devDependencies": {
+    "circomkit": "^0.0.14",
     "@types/mocha": "^10.0.1",
     "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
