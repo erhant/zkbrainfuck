@@ -1,6 +1,7 @@
 pragma circom 2.1.0;
 
 include "./utils.circom";
+include "./functions/bits.circom";
 
 /*
 OP_INC_PTR
@@ -11,83 +12,76 @@ OP_INPUT
 OP_OUTPUT
 */
 
-template VM(MEMSIZE) {
+template VM(MEMSIZE, OPSIZE) {
   // op codes
+  var OP_NOOP = 0;
   var OP_INC_PTR = 1;
   var OP_DEC_PTR = 2;
   var OP_INC_MEM = 3;
   var OP_DEC_MEM = 4;
   var OP_INPUT = 5;
   var OP_OUTPUT = 6;
-  var NUM_OPS = 7; // correct ?
+  
+  // current state
+  signal input in; // input at this clock
+  signal input pgm_ctr; // program counter
+  signal input mem_ptr; // memory pointer
+  signal input mem[MEMSIZE]; // current memory layout
+  signal input op; // operation: operations[pgm_ctr]
 
-  // previous state
-  signal input i;
-  signal input p;
-  signal input m[MEMSIZE];
+  signal val <== ArrayRead(MEMSIZE)(mem, mem_ptr); // pointed value: mem[mem_ptr]
+  signal val_is0 <== IsZero()(val); // is pointed value zero? (used by loops)
 
   // next state
-  signal input _i;
-  signal input _p;
-  signal input _m[MEMSIZE];
+  signal output out; // output
+  signal output next_pgm_ctr;     // next program counter
+  signal output next_mem_ptr;      // next memory pointer
+  signal output next_mem[MEMSIZE]; // next memory layout
 
-  // state changes
-  var op = 0;
-  signal i$[NUM_OPS]; // value to be added to i
-  signal p$[NUM_OPS]; // value to be added to p
-  signal m$[NUM_OPS]; // value to be written to m[p]
+  // operation flags
+  signal is_OP_NOOP <== IsEqual()([OP_NOOP, op]);
+  signal is_OP_INC_PTR <== IsEqual()([OP_INC_PTR, op]);
+  signal is_OP_DEC_PTR <== IsEqual()([OP_DEC_PTR, op]);
+  signal is_OP_INC_MEM <== IsEqual()([OP_INC_MEM, op]);
+  signal is_OP_DEC_MEM <== IsEqual()([OP_DEC_MEM, op]);
+  signal is_OP_INPUT <== IsEqual()([OP_INPUT, op]);
+  signal is_OP_OUTPUT <== IsEqual()([OP_OUTPUT, op]);
 
-  // currently pointed memory value
-  signal m_p <== ArrayRead(MEMSIZE)(m, p);
-  signal m_p_is0 = IsZero()(m_p);
+  // looping flag (when no operation is matched)
+  var is_OP = Sum(7)([
+    is_OP_NOOP,
+    is_OP_INC_PTR,
+    is_OP_DEC_PTR,
+    is_OP_INC_MEM,
+    is_OP_DEC_MEM,
+    is_OP_INPUT,
+    is_OP_OUTPUT
+  ]);
+  signal is_LOOP <== 1 - is_OP;
 
-  // TODO: it could be possible to only care about i$ for jumps, and increment by default
-  // increment pointer
-  signal is_OP_INC_PTR <== IsEqual()([OP_INC_PTR, i]);
-  i$[op] <== is_OP_INC_PTR * 1;
-  p$[op] <== is_OP_INC_PTR * 1;
-  m$[op] <== 0;
-  op++;
+  signal is_pgm_ctr_lt_op <== LessThan(numBits(OPSIZE)+1)([pgm_ctr, op]);
+  signal is_LOOP_BEGIN <== is_LOOP * is_pgm_ctr_lt_op;
+  signal is_LOOP_END <== is_LOOP * (1 - is_pgm_ctr_lt_op);
+  signal is_LOOP_JUMP <== Sum(2)([
+    is_LOOP_BEGIN * val_is0, 
+    is_LOOP_END * (1 - val_is0)
+  ]);
 
-  // decrement pointer
-  signal is_OP_DEC_PTR <== IsEqual()([OP_DEC_PTR, i]);
-  i$[op] <== is_OP_DEC_PTR * 1;
-  p$[op] <== is_OP_DEC_PTR * (-1);
-  m$[op] <== 0;
-  op++;
+  // update program counter
+  signal jump_offset <== is_LOOP_JUMP * (op - 1);
+  next_pgm_ctr <== pgm_ctr + 1 + jump_offset;
 
-  // increment memory
-  signal is_OP_INC_MEM <== IsEqual()([OP_INC_PTR, i]);
-  i$[op] <== is_OP_INC_MEM * 1;
-  p$[op] <== 0;
-  m$[op] <== is_OP_INC_MEM * 1;
-  op++;
+  // update memory pointer
+  // +0 by default
+  next_mem_ptr <== mem_ptr + is_OP_INC_PTR - is_OP_DEC_PTR;
 
-  // decrement memory
-  signal is_OP_DEC_MEM <== IsEqual()([OP_INC_PTR, i]);
-  i$[op] <== is_OP_DEC_MEM * 1;
-  p$[op] <== 0;
-  m$[op] <== is_OP_DEC_MEM * (-1);
-  op++;
+  // set output if any
+  // 0 by default
+  out <== is_OP_OUTPUT * val;
 
-  // input
-  // TODO
-
-  // output
-  // TODO
-
-  // loop begin
-
-  // loop end
-
-  // update state
-  var _i$ = Sum(NUM_OPS)(i$);
-  _i <== i + _i$;
-  var _p$ = Sum(NUM_OPS)(p$);
-  _p <== p + _p$;
-
-  // TODO: 
-  var _m$ = Sum(NUM_OPS)(m$);
-  ArrayWrite(MEMSIZE)(_m, p, _m$ + m_p);
+  // updated pointer memory value
+  // val by default
+  var delta_val = Sum(3)([is_OP_INC_MEM, -is_OP_DEC_MEM, is_OP_INPUT * in]);
+  next_mem <== ArrayWrite(MEMSIZE)(mem, mem_ptr, val + delta_val);
   
 }

@@ -98,9 +98,6 @@ func compile(instructions string) ([]int, error) {
 
 // Executes a compiled brainfuck program.
 func run(operations []int, fmtNumbers bool, memorySize int, maxClocks int) error {
-	pgm_ctr, mem_ptr := 0, 0       // program counter, memory pointer
-	mem := make([]int, memorySize) // memory
-
 	// decide formatting for input and output
 	inFormat, outFormat := "%c", "%c"
 	if fmtNumbers {
@@ -108,6 +105,8 @@ func run(operations []int, fmtNumbers bool, memorySize int, maxClocks int) error
 	}
 
 	// program execution
+	pgm_ctr, mem_ptr := 0, 0       // program counter, memory pointer
+	mem := make([]int, memorySize) // memory
 	for clk := 0; clk < maxClocks && pgm_ctr < len(operations); clk++ {
 		op := operations[pgm_ctr]
 		switch op {
