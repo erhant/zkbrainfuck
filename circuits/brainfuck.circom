@@ -2,6 +2,7 @@ pragma circom 2.1.0;
 
 include "./vm.circom";
 
+// A Brainfuck program execution with 
 template Brainfuck(CLOCKS, MEMSIZE, OPSIZE) {
   signal input ops[OPSIZE];
   signal input inputs[CLOCKS];
@@ -17,6 +18,10 @@ template Brainfuck(CLOCKS, MEMSIZE, OPSIZE) {
   for (var i = 0; i < MEMSIZE; i++) {
     mems[0][i] <== 0;
   }
+
+  // last op must be a NO_OP, effectively halting the program
+  // until we run out of clocks
+  ops[OPSIZE-1] === 0;
 
   // create a VM component for each execution step
   component vm[CLOCKS];

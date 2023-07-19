@@ -75,7 +75,22 @@ zkBrainfuck operates over numbers instead of tokens, and we want this to be as c
 | `i < op` | `[`  | if `m[p] == 0` then `_i' <== op` else `_i <== i + 1` |
 | `i > op` | `]`  | if `m[p] != 0` then `_i' <== op` else `_i <== i + 1` |
 
-To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with number comparisons and jump targets are safe. The circuit only has to assert that **(TODO: maybe make no-op 7 and rest be from 0..6?)**
+To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with number comparisons and jump targets are safe. The circuit only has to assert that
+
+## Constraints
+
+Below are some example instantations with their constraint counts (using optimization level 1). With optimization level 2, one can get rid of linear constraints at the cost of a sligthly longer compilation time.
+
+| Clocks | Memory Size | Operation Count | Non-linear Constraints | Linear Constraints |
+| ------ | ----------- | --------------- | ---------------------- | ------------------ |
+| 1024   | 256         | 20              | 1.65m                  | 565k               |
+| 256    | 256         | 20              | 414k                   | 141k               |
+| 1024   | 64          | 20              | 486k                   | 171k               |
+| 256    | 64          | 20              | 120k                   | 43k                |
+| 256    | 64          | 80              | 167k                   | 58k                |
+| 2048   | 32          | 60              | 767k                   | 274k               |
+
+Constraints grow in linear with the clock size and memory size. Operation count grows the circuit sub-linearly.
 
 ## Honorable Mentions
 
