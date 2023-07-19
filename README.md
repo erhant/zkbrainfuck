@@ -36,9 +36,9 @@ yarn vm:run
   -memory int
     # memory size (default 128)
   -num
-    # use numbers for input & output
+    # use numbers for input & output instead of characters
   -path string
-    # path to file with brainfuck code
+    # path to file with brainfuck code (overwrites -code)
   -verbose
     # print compiled code
 ```
@@ -63,17 +63,17 @@ These inputs are given for **each** clock cycle. Only the the list of instructio
 
 zkBrainfuck operates over numbers instead of tokens, and we want this to be as circuit-friendly as possible. For that, the following methodology is used (think for each clock cycle):
 
-| `op`    | Code | Operation                                            |
-| ------- | ---- | ---------------------------------------------------- |
-| 0       |      | ignore                                               |
-| 1       | `>`  | `_p <== p + 1` and `_i <== i + 1`                    |
-| 2       | `<`  | `_p <== p - 1` and `_i <== i + 1`                    |
-| 3       | `+`  | `_m[p] <== m[p] + 1` and `_i <== i + 1`              |
-| 4       | `-`  | `_m[p] <== m[p] - 1` and `_i <== i + 1`              |
-| 5       | `.`  | `out   <== m[p]` and `_i <== i + 1`                  |
-| 6       | `,`  | `_m[p] <== in` and `_i <== i + 1`                    |
-| $i > 6$ | `[`  | if `m[p] == 0` then `_i' <== op` else `_i <== i + 1` |
-| $j > 6$ | `]`  | if `m[p] != 0` then `_i' <== op` else `_i <== i + 1` |
+| `op`     | Code | Operation                                            |
+| -------- | ---- | ---------------------------------------------------- |
+| 0        |      | ignore                                               |
+| 1        | `>`  | `_p <== p + 1` and `_i <== i + 1`                    |
+| 2        | `<`  | `_p <== p - 1` and `_i <== i + 1`                    |
+| 3        | `+`  | `_m[p] <== m[p] + 1` and `_i <== i + 1`              |
+| 4        | `-`  | `_m[p] <== m[p] - 1` and `_i <== i + 1`              |
+| 5        | `.`  | `out   <== m[p]` and `_i <== i + 1`                  |
+| 6        | `,`  | `_m[p] <== in` and `_i <== i + 1`                    |
+| `i < op` | `[`  | if `m[p] == 0` then `_i' <== op` else `_i <== i + 1` |
+| `i > op` | `]`  | if `m[p] != 0` then `_i' <== op` else `_i <== i + 1` |
 
 To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with number comparisons and jump targets are safe. The circuit only has to assert that **(TODO: maybe make no-op 7 and rest be from 0..6?)**
 

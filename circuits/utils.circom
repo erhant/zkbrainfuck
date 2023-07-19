@@ -1,35 +1,6 @@
 pragma circom 2.1.0;
 
-// Checks if two numbers are equal.
-//
-// Inputs:
-// - `in`: two numbers
-//
-// Outputs:
-// - `out`: 1 if `in[0] == in[1]`, 0 otherwise
-template IsEqual() {
-  signal input in[2];
-  signal output {bool} out;
-
-  out <== IsZero()(in[1] - in[0]);
-}
-
-// Checks if a number is zero.
-//
-// Inputs:
-// - `in`: a number
-//
-// Outputs:
-// - `out`: 1 if `in == 0`, 0 otherwise
-template IsZero() {
-  signal input in;
-  signal output {bool} out;
-
-  signal inv <-- in != 0 ? (1 / in) : 0;
-
-  out <== (-in * inv) + 1;
-  in * out === 0;
-}
+include "circomlib/circuits/comparators.circom";
 
 // If-else branching.
 //
@@ -41,7 +12,7 @@ template IsZero() {
 // Outputs:
 // - `out`: equals `cond ? ifTrue : ifFalse`
 template IfElse() {
-  signal input {bool} cond;
+  signal input cond;
   signal input ifTrue;
   signal input ifFalse;
   signal output out;
@@ -49,19 +20,74 @@ template IfElse() {
   out <== cond * (ifTrue - ifFalse) + ifFalse;
 }
 
-// Swaps in[0] ~ in[1] if `cond` is true.
+// Array access `out <== in[index]`.
+// If `index >= n`, then this returns 0
+//
+// Parameters:
+// - `n`: length of `in`
 //
 // Inputs:
-// - `cond`: a boolean condition
-// - `in`: two numbers
+// - `in`: an array of `n` values
+// - `index`: index to access
 //
 // Outputs:
-// - `out`: two numbers either swapped or not
-template Swap() {
-  signal input {bool} cond;
-  signal input in[2];
-  signal output out[2];
+// - `out`: value at `in[index]`
+template ArrayRead(n) {
+  signal input in[n];
+  signal input index;
+  signal output out;
 
-  out[0] <== cond * (in[1] - in[0]) + in[0];
-  out[1] <== cond * (in[0] - in[1]) + in[1];
+  signal intermediate[n];
+  for (var i = 0; i < n; i++) {
+    var isIndex = IsEqual()([index, i]);
+    intermediate[i] <== isIndex * in[i];
+  }
+
+  out <== Sum(n)(intermediate);
+}
+
+// Array write `in[index] <== value`.
+//
+// Parameters:
+// - `n`: length of `in`
+//
+// Inputs:
+// - `in`: an array of `n` values
+// - `index`: index to write to
+// - `value`: value to be written
+//
+// Outputs:
+// - `out`: array
+template ArrayWrite(n) {
+  signal input in[n];
+  signal input index;
+  signal input value;
+  signal output out[n];
+
+  for (var i = 0; i < n; i++) {
+    var isIndex = IsEqual()([index, i]);
+    out[i] <== IfElse()(isIndex, value, in[i]);
+  }
+}
+
+// Finds the sum of an array of signals.
+//
+// Parameters:
+// - `n`: length of `in`
+//
+// Inputs:
+// - `in`: an array of `n` values
+//
+// Outputs:
+// - `out`: sum of all values in `in`
+template Sum(n) {
+  signal input in[n];
+  signal output out;
+
+  // better to refer to the sum as "linear combination"
+  var lc = 0;
+  for (var i = 0; i < n; i++) {
+    lc += in[i];
+  }
+  out <== lc;
 }
