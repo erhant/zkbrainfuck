@@ -1,7 +1,8 @@
 {
-  "vm": {
+  "bf": {
     "file": "brainfuck",
     "template": "Brainfuck",
-    "params": [512, 32, 60]
+    "params": [256, 32, 60, 10, 10],
+    "pubs": ["outputs"]
   }
 }

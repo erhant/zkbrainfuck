@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -57,14 +58,23 @@ func main() {
 		log.Fatalf("RUNTIME ERROR: %s", err)
 	} else {
 		if record {
-			fmt.Println("\nTRACE:")
-			fmt.Println(*trace)
+			if err := export_trace(*export, trace); err != nil {
+				log.Fatalf("EXPORT ERROR: %s", err)
+			}
 		}
 	}
 	fmt.Println()
 }
 
 func export_trace(path string, trace *vm.IOTrace) error {
-	// export is '.' then print to console
-	return nil // TODO
+	file, err := json.MarshalIndent(trace, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, file, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }

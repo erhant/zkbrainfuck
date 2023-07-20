@@ -6,34 +6,18 @@ import (
 	"zkbrainfuck/internal/ops"
 )
 
-// signal input ops[OPSIZE];
-// signal input inputs[CLOCKS];
-// signal output outputs[CLOCKS];
-
 type IOTrace struct {
-	opsize  uint
-	clocks  uint
-	ops     []uint
-	inputs  []uint
-	outputs []uint
+	Ops     []uint `json:"ops"`
+	Inputs  []uint `json:"inputs"`
+	Outputs []uint `json:"outputs"`
 }
 
 // Executes a compiled brainfuck program.
 //
 // If record is `true`, will return a pointer to execution trace.
 func Run(operations []uint, fmtNumbers bool, memorySize uint, clocks uint, record bool) (*IOTrace, error) {
-	// prepare IOTrace inputs
-	var inputs []uint
-	var outputs []uint
-	if record {
-		inputs = make([]uint, clocks)
-		outputs = make([]uint, clocks)
-	} else {
-		inputs = nil
-		outputs = nil
-	}
-
-	// decide formatting for input and output
+	inputs := make([]uint, 0)
+	outputs := make([]uint, 0)
 	inFormat, outFormat := "%c", "%c"
 	if fmtNumbers {
 		inFormat, outFormat = "%d", "%d "
@@ -77,7 +61,7 @@ func Run(operations []uint, fmtNumbers bool, memorySize uint, clocks uint, recor
 			fmt.Printf(outFormat, mem[mem_ptr])
 			pgm_ctr++
 			if record {
-				outputs[clk] = mem[mem_ptr]
+				outputs = append(outputs, mem[mem_ptr])
 			}
 
 		case ops.OP_INPUT:
@@ -89,7 +73,7 @@ func Run(operations []uint, fmtNumbers bool, memorySize uint, clocks uint, recor
 			mem[mem_ptr] = uint(in)
 			pgm_ctr++
 			if record {
-				inputs[clk] = mem[mem_ptr]
+				inputs = append(inputs, mem[mem_ptr])
 			}
 
 		default:
@@ -119,8 +103,6 @@ func Run(operations []uint, fmtNumbers bool, memorySize uint, clocks uint, recor
 
 	if record {
 		return &IOTrace{
-			opsize,
-			clocks,
 			operations,
 			inputs,
 			outputs,
