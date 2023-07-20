@@ -1,42 +1,29 @@
-import { Circomkit, WitnessTester } from "circomkit";
-import { CircuitParameters, ProgramExecution } from "./types";
+import { Circomkit, type WitnessTester } from "circomkit";
 import { prepareProgramForCircuit } from "./utils";
+import { helloworld } from "./inputs";
 
-const circomkit = new Circomkit();
+const circomkit = new Circomkit({
+  verbose: false,
+});
 
-const program: ProgramExecution = {
-  ticks: 47,
-  memsize: 0,
-  opsize: 18,
-  insize: 1,
-  outsize: 10,
-  ops: [0, 0, 0, 0, 0, 0, 0, 5, 3, 3, 3, 3, 3, 16, 4, 6, 13, 0],
-  inputs: [5],
-  outputs: [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-};
-const params: CircuitParameters = {
-  insize: 2,
-  outsize: 15,
-  opsize: 20,
-  memsize: 10,
-  ticks: 80,
-};
-describe("zkbrainfuck", () => {
-  let circuit: WitnessTester<["ops", "inputs", "outputs"]>;
-  const INPUT = prepareProgramForCircuit(program, params);
+[helloworld].map(({ program, params, name }) =>
+  describe(`zkBrainfuck (${name})`, () => {
+    let circuit: WitnessTester<["ops", "inputs", "outputs"]>;
+    const INPUT = prepareProgramForCircuit(program, params);
 
-  before(async () => {
-    circuit = await circomkit.WitnessTester("zkbrainfuck", {
-      file: "brainfuck",
-      template: "Brainfuck",
-      params: [params.ticks, params.memsize, params.opsize, params.insize, params.outsize],
+    before(async () => {
+      console.time("compiled in");
+      circuit = await circomkit.WitnessTester(name, {
+        file: "brainfuck",
+        template: "Brainfuck",
+        params: [params.ticks, params.memsize, params.opsize, params.insize, params.outsize],
+      });
+      console.timeEnd("compiled in");
+      console.log("constraints:", await circuit.getConstraintCount());
     });
 
-    console.log("#constraints:", await circuit.getConstraintCount());
-  });
-
-  it("should execute circuit", async () => {
-    console.log("executing...");
-    await circuit.expectPass(INPUT);
-  });
-});
+    it("should execute circuit", async () => {
+      await circuit.expectPass(INPUT);
+    });
+  })
+);

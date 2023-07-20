@@ -37,7 +37,12 @@ func Execute(operations []uint, fmtNumbers bool, memorySize uint, ticks uint, re
 	tick := uint(0)                      // tick
 	opsize := uint(len(operations))      // number of operations
 	for ; tick < ticks && pgm_ctr < opsize; tick++ {
+
 		op := operations[pgm_ctr]
+
+		// in case of emergency, break glass
+		// fmt.Println("op:", op, "\tval", mem[mem_ptr], "\tp:", mem_ptr, "\ti:", pgm_ctr)
+
 		switch op {
 
 		case compiler.OP_NOOP:
@@ -118,6 +123,8 @@ func Execute(operations []uint, fmtNumbers bool, memorySize uint, ticks uint, re
 	if pgm_ctr < opsize {
 		return nil, errors.New("maximum ticks reached before termination")
 	}
+
+	fmt.Println("\n(done in", tick, "ticks)")
 
 	if record {
 		return &ProgramExecution{

@@ -16,13 +16,12 @@ func main() {
 	path := flag.String("path", "", "path to file with brainfuck code")
 	export := flag.String("export", "", "path to export program information")
 	isNumFmt := flag.Bool("num", false, "use numbers for input & output instead of runes")
-	verbose := flag.Bool("verbose", false, "print compiled code")
 	maxTicks := flag.Uint("ticks", 1<<11, "maximum number of ticks")
 	memorySize := flag.Uint("memory", 128, "memory size")
 	opsize := flag.Uint("opsize", 0, "operations size")
 	flag.Parse()
 
-	// if export is given, we need to record IOTrace
+	// if export is given, we need to record program execution
 	// and export it to a JSON file
 	record := false
 	if len(*export) != 0 {
@@ -47,18 +46,13 @@ func main() {
 		log.Fatalf("COMPILER ERROR: %s", err)
 	}
 
-	// print compilation result if verbose
-	if *verbose {
-		fmt.Printf("%v\n\n", operations)
-	}
-
 	// run code
-	if trace, err := vm.Execute(operations, *isNumFmt, *memorySize, *maxTicks, record); err != nil {
+	if programExecution, err := vm.Execute(operations, *isNumFmt, *memorySize, *maxTicks, record); err != nil {
 		fmt.Println()
 		log.Fatalf("RUNTIME ERROR: %s", err)
 	} else {
 		if record {
-			if err := export_trace(*export, trace); err != nil {
+			if err := export_program_execution(*export, programExecution); err != nil {
 				log.Fatalf("EXPORT ERROR: %s", err)
 			}
 		}
@@ -66,7 +60,7 @@ func main() {
 	fmt.Println()
 }
 
-func export_trace(path string, trace *vm.ProgramExecution) error {
+func export_program_execution(path string, trace *vm.ProgramExecution) error {
 	file, err := json.Marshal(trace)
 	if err != nil {
 		return err

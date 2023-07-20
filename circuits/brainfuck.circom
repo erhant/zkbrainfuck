@@ -28,45 +28,42 @@ include "./vm.circom";
 // Parameters:
 // - `TICKS`: number of ticks to run
 // - `MEMSIZE`: maximum memory size
-// - `OPSIZE`: number of operations
-// - `INSIZE`: number of inputs
-// - `OUTSIZE`: number of outputs
+// - `OPSIZE`: maximum number of operations
+// - `INSIZE`: maximum number of inputs
+// - `OUTSIZE`: maximum number of outputs
 //
 // Inputs:
 // - `ops`: compiled code, as an array of integers where 0 is no-op
-// - `inputs`: inputs in the order they appear
-// - `outputs`: outputs in the order they appear
+// - `inputs`: inputs in the order they appear, append zeros for no input
+// - `outputs`: outputs in the order they appear, append zeros for no output
 //
 template Brainfuck(TICKS, MEMSIZE, OPSIZE, INSIZE, OUTSIZE) {
   signal input ops[OPSIZE];
   signal input inputs[INSIZE];
   signal input outputs[OUTSIZE];
 
+  signal pgm_ctrs[TICKS];
   signal mem_ptrs[TICKS];
-  mem_ptrs[0] <== 0;
-
   signal input_ptrs[TICKS];
-  input_ptrs[0] <== 0;
-  
   signal output_ptrs[TICKS];
-  output_ptrs[0] <== 0;
-
   signal mems[TICKS][MEMSIZE];
+
+  pgm_ctrs[0] <== 7; // skip prepended zeros
+  mem_ptrs[0] <== 0;
+  input_ptrs[0] <== 0;
+  output_ptrs[0] <== 0;
+  // entire memory is zeros at first
   for (var i = 0; i < MEMSIZE; i++) {
     mems[0][i] <== 0;
   }
-
-  signal pgm_ctrs[TICKS];
-  pgm_ctrs[0] <== 7; // skips prepended zeros
+  // ops must be zero-padded
   for (var i = 0; i < 7; i++) {
     ops[i] === 0;
   }
+  // last possible op must be no-op
+  ops[OPSIZE - 1] === 0;
 
-  // at worst, the last op must be a NO_OP
-  // effectively halting the program until we run out of ticks
-  ops[OPSIZE-1] === 0;
-
-  component vm[TICKS];
+  component vm[TICKS - 1];
   for (var tick = 0; tick < TICKS - 1; tick++) {
     vm[tick] = VM(MEMSIZE, OPSIZE);
 

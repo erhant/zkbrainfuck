@@ -32,3 +32,12 @@ export type CircuitParameters = {
   insize: number;
   outsize: number;
 };
+
+/** A test case */
+export type TestCase = {
+  program: ProgramExecution;
+  params: CircuitParameters;
+  name: string;
+  /** treat the memory as integers (true) or ASCII (false)? */
+  num: boolean;
+};

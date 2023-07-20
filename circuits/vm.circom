@@ -1,16 +1,15 @@
 pragma circom 2.1.0;
 
 include "./utils.circom";
-include "./functions/bits.circom";
 
 template VM(MEMSIZE, OPSIZE) {
-  var OP_NOOP    = 0;
-  var OP_INC_PTR = 1;
-  var OP_DEC_PTR = 2;
-  var OP_INC_MEM = 3;
-  var OP_DEC_MEM = 4;
-  var OP_INPUT   = 5;
-  var OP_OUTPUT  = 6;
+  var OP_NOOP    = 0; //    no operation
+  var OP_INC_PTR = 1; // >  move pointer right
+  var OP_DEC_PTR = 2; // <  move pointer left
+  var OP_INC_MEM = 3; // +  increment pointed memory
+  var OP_DEC_MEM = 4; // -  decrement pointed memory
+  var OP_INPUT   = 5; // ,  input value to pointed memory
+  var OP_OUTPUT  = 6; // .  output value from pointed memory
   
   signal input op;           // current operation
   signal input in;           // input at this tick
@@ -35,8 +34,7 @@ template VM(MEMSIZE, OPSIZE) {
   signal is_OP_INPUT   <== IsEqual()([OP_INPUT,   op]);
   signal is_OP_OUTPUT  <== IsEqual()([OP_OUTPUT,  op]);
 
-  // looping flag (when no operation is matched)
-  // we expect this sum to result in 1 or 0 due to distinct IsEquals
+  // we expect this sum to result in 1 or 0 due to distinct IsEquals above
   var is_OP = Sum(7)([
     is_OP_NOOP,
     is_OP_INC_PTR,
@@ -46,19 +44,22 @@ template VM(MEMSIZE, OPSIZE) {
     is_OP_INPUT,
     is_OP_OUTPUT
   ]);
+
+  // if no OP is matched, we must be looping
   signal is_LOOP <== 1 - is_OP;
 
-  // currently pointed value
-  signal val <== ArrayRead(MEMSIZE)(mem, mem_ptr); // pointed value: mem[mem_ptr]
-  signal val_is0 <== IsZero()(val);                // is pointed value zero? (used by loops)
+  // currently pointed value `mem[mem_ptr]` is referred to as `val`
+  signal val <== ArrayRead(MEMSIZE)(mem, mem_ptr);
+  signal val_is0 <== IsZero()(val);
 
+  // determine jump destination; since program counter is incremented
+  // we can jump by adding (destination - 1 - pgm_ctr) to the default value
+  // if not, the offset is kept to be 0
   signal is_pgm_ctr_lt_op <== LessThan(numBits(OPSIZE)+1)([pgm_ctr, op]);
-
   signal is_LOOP_BEGIN    <== is_LOOP * is_pgm_ctr_lt_op;
   signal is_LOOP_END      <== is_LOOP * (1 - is_pgm_ctr_lt_op);
   signal is_LOOP_JUMP     <== Sum(2)([is_LOOP_BEGIN * val_is0, is_LOOP_END * (1 - val_is0)]);
-  
-  signal jmp_offset       <== is_LOOP_JUMP * (op - 1);
+  signal jmp_offset       <== is_LOOP_JUMP * (op - 1 - pgm_ctr);
 
   // program counter is incremented by default
   // if there is a loop, we add `jump_target - 1` to cancel incremention
@@ -66,11 +67,12 @@ template VM(MEMSIZE, OPSIZE) {
   // if no-op, we cancel the incremention to cause program to halt
   next_pgm_ctr <== pgm_ctr + 1 + jmp_offset - is_OP_NOOP;
 
-  // memory pointer is incremented or decremented w.r.t op
-  // otherwise, is equal to its current value
+  // memory pointer stays the same by default
+  // otherwise it is only incremented or decremented
   next_mem_ptr <== mem_ptr + is_OP_INC_PTR - is_OP_DEC_PTR;
 
-  // input & output pointers are incremented w.r.t their ops
+  // input and output pointers stay the same by default
+  // if there is an input or output, the respective pointer is incremented
   next_input_ptr <== input_ptr + is_OP_INPUT;
   next_output_ptr <== output_ptr + is_OP_OUTPUT;
 
@@ -84,4 +86,7 @@ template VM(MEMSIZE, OPSIZE) {
   // output is only set during its respective op
   var expectedOut = IfElse()(is_OP_OUTPUT, val, out);
   out === expectedOut;
+
+  // in case of emergency, break glass
+  // log("op:", op, "\tval", val, "\tp:", mem_ptr, "\ti:", pgm_ctr);
 }

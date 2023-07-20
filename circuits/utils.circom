@@ -1,6 +1,7 @@
 pragma circom 2.1.0;
 
 include "circomlib/circuits/comparators.circom";
+include "./functions/bits.circom";
 
 // If-else branching.
 //

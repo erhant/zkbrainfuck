@@ -19,7 +19,7 @@ Any other symbol is ignored, and may effectively be used as comments.
 
 ## Virtual Machine
 
-We have written a Brainfuck compiler & runner in Go, which you can find under the [vm](./vm/) folder. Assuming you have Go installed, you can build the binary simply via:
+We have written a smol Brainfuck VM in Go, which you can find under the [vm](./vm/) folder. Assuming you have Go installed, you can build the binary simply via:
 
 ```sh
 yarn vm:build
@@ -29,21 +29,20 @@ Afterwards, you can run the binary with:
 
 ```sh
 yarn vm:run
-  -ticks int
-    # maximum number of ticks (default 65536)
-  -code string
-    # brainfuck code (default ",+++++[-.]")
-  -memory int
-    # memory size (default 128)
-  -num
-    # use numbers for input & output instead of characters
-  -path string
-    # path to file with brainfuck code (overwrites -code)
-  -verbose
-    # print compiled code
+  -code   string   # brainfuck code (default ",+++++[-.]")
+  -export string   # path to export program information
+  -path   string   # path to import brainfuck code
+  -memory uint     # memory size (default 128)
+  -opsize uint     # operations size
+  -ticks  uint     # maximum number of ticks (default 2048)
+  -num             # use numbers for input & output instead of runes
 ```
 
-You may find a few example Brainfuck codes in [here](./vm/sample). To run them, pass their paths via the `-path` option. By default, the VM will run `,+++++[-.]` which takes an input, increments it 5 times and then starts decrementing it, printing the value each time.
+You may find a few example Brainfuck codes in [here](./vm/sample). To run them, pass their paths via the `-path` option. By default, the VM will run `,+++++[-.]` which takes an input, increments it 5 times and then starts decrementing it, printing the value each time. Note that this implementation does not allow for underflows, neither for the program counter or memory pointer.
+
+### From Code to Integers
+
+...
 
 ## Proving Execution
 

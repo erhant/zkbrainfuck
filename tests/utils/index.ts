@@ -5,7 +5,7 @@ export function prepareProgramForCircuit(program: ProgramExecution, circuit: Cir
   if (program.memsize > circuit.memsize) throw new Error("Program memory exceed circuit memory.");
   if (program.insize > circuit.insize) throw new Error("Program inputs exceed circuit inputs.");
   if (program.outsize > circuit.outsize) throw new Error("Program outputs exceed circuit outputs.");
-  if (program.opsize > circuit.opsize) throw new Error("Program operaitons exceed circuit operations.");
+  if (program.opsize > circuit.opsize) throw new Error("Program operations exceed circuit operations.");
 
   return {
     ops: program.ops.concat(Array.from({ length: circuit.opsize - program.opsize }, () => 0)),
