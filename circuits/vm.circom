@@ -80,7 +80,11 @@ template VM(MEMSIZE, OPSIZE) {
   // by default, the same value is written to the same place
   // if needed, that value is incremented, decremented
   // during an input, we add `in - val` to `val` to obtain `in`
-  var delta_val = Sum(3)([is_OP_INC_MEM, -is_OP_DEC_MEM, is_OP_INPUT * (in - val)]);
+  var delta_val = Sum(3)([
+    is_OP_INC_MEM, 
+    -is_OP_DEC_MEM, 
+    is_OP_INPUT * (in - val)
+  ]);
   next_mem <== ArrayWrite(MEMSIZE)(mem, mem_ptr, val + delta_val);
   
   // output is only set during its respective op

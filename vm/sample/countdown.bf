@@ -1,0 +1,5 @@
+, get input
+[
+  . output
+  - decrement
+]

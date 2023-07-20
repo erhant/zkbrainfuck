@@ -15,11 +15,7 @@ Brainfuck is a Turing-complete language that has only 8 operations defined as fo
 | `[`  | if pointed data is zero, `goto` matching `]`     |
 | `]`  | if pointed data is non-zero, `goto` matching `[` |
 
-Any other symbol is ignored, and may effectively be used as comments.
-
-## Virtual Machine
-
-We have written a smol Brainfuck VM in Go, which you can find under the [vm](./vm/) folder. Assuming you have Go installed, you can build the binary simply via:
+Any other symbol is ignored, and may effectively be used as comments. We have written a smol Brainfuck VM in Go, which you can find under the [vm](./vm/) folder. Assuming you have Go installed, you can build the binary simply via:
 
 ```sh
 yarn vm:build
@@ -29,7 +25,7 @@ Afterwards, you can run the binary with:
 
 ```sh
 yarn vm:run
-  -code   string   # brainfuck code (default ",+++++[-.]")
+  -code   string   # brainfuck code (default ",[.-]")
   -export string   # path to export program information
   -path   string   # path to import brainfuck code
   -memory uint     # memory size (default 128)
@@ -38,7 +34,7 @@ yarn vm:run
   -num             # use numbers for input & output instead of runes
 ```
 
-You may find a few example Brainfuck codes in [here](./vm/sample). To run them, pass their paths via the `-path` option. By default, the VM will run `,+++++[-.]` which takes an input, increments it 5 times and then starts decrementing it, printing the value each time. Note that this implementation does not allow for underflows, neither for the program counter or memory pointer.
+You may find a few example Brainfuck codes in [here](./vm/sample). To run them, pass their paths via the `-path` option. Our VM does not allow for underflows, neither for the program counter or memory pointer. The default code `,[-]` simply takes an input and counts down, terminating when it reaches 0.
 
 ### From Code to Integers
 

@@ -1,12 +1,12 @@
 import { Circomkit, type WitnessTester } from "circomkit";
 import { prepareProgramForCircuit } from "./utils";
-import { helloworld } from "./inputs";
+import { helloworld, countdown } from "./inputs";
 
 const circomkit = new Circomkit({
   verbose: false,
 });
 
-[helloworld].map(({ program, params, name }) =>
+[countdown].map(({ program, params, name }) =>
   describe(`zkBrainfuck (${name})`, () => {
     let circuit: WitnessTester<["ops", "inputs", "outputs"]>;
     const INPUT = prepareProgramForCircuit(program, params);

@@ -48,6 +48,13 @@ template Brainfuck(TICKS, MEMSIZE, OPSIZE, INSIZE, OUTSIZE) {
   signal output_ptrs[TICKS];
   signal mems[TICKS][MEMSIZE];
 
+  // ops must be zero-padded
+  for (var i = 0; i < 7; i++) {
+    ops[i] === 0;
+  }
+  // last possible op must be no-op
+  ops[OPSIZE - 1] === 0;
+
   pgm_ctrs[0] <== 7; // skip prepended zeros
   mem_ptrs[0] <== 0;
   input_ptrs[0] <== 0;
@@ -56,13 +63,7 @@ template Brainfuck(TICKS, MEMSIZE, OPSIZE, INSIZE, OUTSIZE) {
   for (var i = 0; i < MEMSIZE; i++) {
     mems[0][i] <== 0;
   }
-  // ops must be zero-padded
-  for (var i = 0; i < 7; i++) {
-    ops[i] === 0;
-  }
-  // last possible op must be no-op
-  ops[OPSIZE - 1] === 0;
-
+  
   component vm[TICKS - 1];
   for (var tick = 0; tick < TICKS - 1; tick++) {
     vm[tick] = VM(MEMSIZE, OPSIZE);
