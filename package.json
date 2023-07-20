@@ -5,7 +5,8 @@
   "scripts": {
     "test": "npx mocha",
     "vm:run": "./vm/bin/main",
-    "vm:build": "cd vm && go build -o ./bin/main -ldflags \"-s -w\" ./cmd/main.go"
+    "vm:build": "cd vm && go build -o ./bin/main -ldflags \"-s -w\" ./cmd/main.go",
+    "vm:hello": "./vm/bin/main --path ./vm/sample/helloworld.bf --clocks 1024 --export ./vm/out/hello.json"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",

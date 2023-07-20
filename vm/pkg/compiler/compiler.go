@@ -14,9 +14,7 @@ func Compile(instructions string, opsize uint) ([]uint, error) {
 	// find code length and prepare stack sizes for `[` and `]`
 	// and check if they match correctly
 	stack_ptr, max_stack_ptr := 0, 0
-
 	instruction_count := uint(0)
-
 	for _, op := range instructions {
 		switch op {
 		case '>':
@@ -43,12 +41,12 @@ func Compile(instructions string, opsize uint) ([]uint, error) {
 				return nil, errors.New("missing [")
 			}
 			stack_ptr--
-		default: // ignore
+		default: // ignore comments and any other invalid character
 		}
 	}
 
-	// if `[` and `]`s match, we should expect the stack
-	// to be empty at this point
+	// if `[` and `]`s match, we should expect
+	// the stack to be empty at this point
 	if stack_ptr != 0 {
 		return nil, errors.New("missing ]")
 	}
@@ -56,7 +54,7 @@ func Compile(instructions string, opsize uint) ([]uint, error) {
 	// find operation size
 	prepend_count := uint(7) // because of 6 non-loop operations + 1 no-op
 	append_count := uint(1)  // because last step should be a 0
-	min_operations_len := instruction_count + prepend_count + append_count
+	min_operations_len := prepend_count + instruction_count + append_count
 	operations_len := opsize
 	if opsize == 0 {
 		operations_len = min_operations_len
@@ -69,7 +67,7 @@ func Compile(instructions string, opsize uint) ([]uint, error) {
 	// prepend 0s to disambugate instruction ~ jump target
 	operations := make([]uint, operations_len)
 	stack := make([]uint, max_stack_ptr)
-	pgm_ctr := prepend_count
+	pgm_ctr := prepend_count // skip prepended zeros
 	for _, op := range instructions {
 		switch op {
 		case '>':

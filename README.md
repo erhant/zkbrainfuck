@@ -47,21 +47,7 @@ You may find a few example Brainfuck codes in [here](./vm/sample). To run them, 
 
 ## Proving Execution
 
-Our objective with zkBrainfuck is to prove correct execution of Brainfuck while hiding our inputs. To do that, instead of writing the Brainfuck VM as a circuit itself, we will write a constraining circuit that checks the execution steps and confirm that these steps are valid for a Brainfuck program.
-
-To re-iterate what we mean here, consider a square-root circuit where given `n` it outputs `sqrt(n)`. Well, instead of doing that square-root stuff in a circuit, we could ask for an input `m` that will be output directly, and add a constraint such that `n === m * m` which makes things so much easier while still providing execution correctness.
-
-With that said, let us define the requirements for the circuit to prove a step of execution:
-
-- Current input `in`
-- Current output `out`
-- Current & next instruction `i` and `_i`
-- Current & next memory layouts `m` and `_m`
-- Current & next memory pointers `p` and `_p`
-
-These inputs are given for **each** clock cycle. Only the the list of instructions and outputs are public, the rest are private inputs.
-
-zkBrainfuck operates over numbers instead of tokens, and we want this to be as circuit-friendly as possible. For that, the following methodology is used (think for each clock cycle):
+TODO
 
 | `op`     | Code | Operation                                            |
 | -------- | ---- | ---------------------------------------------------- |

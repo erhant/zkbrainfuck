@@ -14,8 +14,8 @@ func main() {
 	// parse command line arguments
 	code := flag.String("code", ",+++++[-.]", "brainfuck code")
 	path := flag.String("path", "", "path to file with brainfuck code")
-	export := flag.String("export", "", "path to export IO trace")
-	isNumFmt := flag.Bool("num", false, "use numbers for input & output")
+	export := flag.String("export", "", "path to export program information")
+	isNumFmt := flag.Bool("num", false, "use numbers for input & output instead of runes")
 	verbose := flag.Bool("verbose", false, "print compiled code")
 	maxClocks := flag.Uint("clocks", 1<<11, "maximum number of \"clock cycles\"")
 	memorySize := flag.Uint("memory", 128, "memory size")

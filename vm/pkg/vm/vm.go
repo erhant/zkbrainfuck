@@ -7,6 +7,7 @@ import (
 )
 
 type IOTrace struct {
+	Clocks  uint   `json:"clocks"`
 	Ops     []uint `json:"ops"`
 	Inputs  []uint `json:"inputs"`
 	Outputs []uint `json:"outputs"`
@@ -103,6 +104,7 @@ func Run(operations []uint, fmtNumbers bool, memorySize uint, clocks uint, recor
 
 	if record {
 		return &IOTrace{
+			clk,
 			operations,
 			inputs,
 			outputs,

@@ -57,10 +57,12 @@ template VM(MEMSIZE, OPSIZE) {
   signal val_is0 <== IsZero()(val);                // is pointed value zero? (used by loops)
 
   signal is_pgm_ctr_lt_op <== LessThan(numBits(OPSIZE)+1)([pgm_ctr, op]);
+
   signal is_LOOP_BEGIN    <== is_LOOP * is_pgm_ctr_lt_op;
   signal is_LOOP_END      <== is_LOOP * (1 - is_pgm_ctr_lt_op);
   signal is_LOOP_JUMP     <== Sum(2)([is_LOOP_BEGIN * val_is0, is_LOOP_END * (1 - val_is0)]);
-  signal jmp_offset <==is_LOOP_JUMP * (op - 1);
+  
+  signal jmp_offset       <== is_LOOP_JUMP * (op - 1);
 
   // program counter is incremented by default
   // if there is a loop, we add `jump_target - 1` to cancel incremention

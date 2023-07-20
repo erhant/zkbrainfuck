@@ -84,7 +84,6 @@ template Sum(n) {
   signal input in[n];
   signal output out;
 
-  // better to refer to the sum as "linear combination"
   var lc = 0;
   for (var i = 0; i < n; i++) {
     lc += in[i];
