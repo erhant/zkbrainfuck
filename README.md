@@ -29,8 +29,8 @@ Afterwards, you can run the binary with:
 
 ```sh
 yarn vm:run
-  -clocks int
-    # maximum number of "clock cycles" (default 65536)
+  -ticks int
+    # maximum number of ticks (default 65536)
   -code string
     # brainfuck code (default ",+++++[-.]")
   -memory int
@@ -67,16 +67,16 @@ To disambugate `op` values from jump targets, compiled code will be prepended wi
 
 Below are some example instantations with their constraint counts (using optimization level 1). With optimization level 2, one can get rid of linear constraints at the cost of a sligthly longer compilation time.
 
-| Clocks | Memory Size | Operation Count | Non-linear Constraints | Linear Constraints |
-| ------ | ----------- | --------------- | ---------------------- | ------------------ |
-| 1024   | 256         | 20              | 1.65m                  | 565k               |
-| 256    | 256         | 20              | 414k                   | 141k               |
-| 1024   | 64          | 20              | 486k                   | 171k               |
-| 256    | 64          | 20              | 120k                   | 43k                |
-| 256    | 64          | 80              | 167k                   | 58k                |
-| 2048   | 32          | 60              | 767k                   | 274k               |
+| Ticks | Memory Size | Operation Count | Non-linear Constraints | Linear Constraints |
+| ----- | ----------- | --------------- | ---------------------- | ------------------ |
+| 1024  | 256         | 20              | 1.65m                  | 565k               |
+| 256   | 256         | 20              | 414k                   | 141k               |
+| 1024  | 64          | 20              | 486k                   | 171k               |
+| 256   | 64          | 20              | 120k                   | 43k                |
+| 256   | 64          | 80              | 167k                   | 58k                |
+| 2048  | 32          | 60              | 767k                   | 274k               |
 
-Constraints grow in linear with the clock size and memory size. Operation count grows the circuit sub-linearly.
+Constraints grow in linear with the tick size and memory size. Operation count grows the circuit sub-linearly.
 
 ## Honorable Mentions
 

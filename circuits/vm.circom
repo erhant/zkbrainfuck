@@ -14,7 +14,7 @@ template VM(MEMSIZE, OPSIZE) {
   var OP_OUTPUT = 6;
   
   // current state
-  signal input in;           // input at this clock
+  signal input in;           // input at this tick
   signal input pgm_ctr;      // program counter
   signal input mem_ptr;      // memory pointer
   signal input input_ptr;    // input pointer

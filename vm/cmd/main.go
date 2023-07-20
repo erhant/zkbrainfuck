@@ -17,7 +17,7 @@ func main() {
 	export := flag.String("export", "", "path to export program information")
 	isNumFmt := flag.Bool("num", false, "use numbers for input & output instead of runes")
 	verbose := flag.Bool("verbose", false, "print compiled code")
-	maxClocks := flag.Uint("clocks", 1<<11, "maximum number of \"clock cycles\"")
+	maxTicks := flag.Uint("ticks", 1<<11, "maximum number of ticks")
 	memorySize := flag.Uint("memory", 128, "memory size")
 	opsize := flag.Uint("opsize", 0, "operations size")
 	flag.Parse()
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// run code
-	if trace, err := vm.Run(operations, *isNumFmt, *memorySize, *maxClocks, record); err != nil {
+	if trace, err := vm.Execute(operations, *isNumFmt, *memorySize, *maxTicks, record); err != nil {
 		fmt.Println()
 		log.Fatalf("RUNTIME ERROR: %s", err)
 	} else {
@@ -66,8 +66,8 @@ func main() {
 	fmt.Println()
 }
 
-func export_trace(path string, trace *vm.IOTrace) error {
-	file, err := json.MarshalIndent(trace, "", "  ")
+func export_trace(path string, trace *vm.ProgramExecution) error {
+	file, err := json.Marshal(trace)
 	if err != nil {
 		return err
 	}

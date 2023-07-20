@@ -6,7 +6,9 @@
     "test": "npx mocha",
     "vm:run": "./vm/bin/main",
     "vm:build": "cd vm && go build -o ./bin/main -ldflags \"-s -w\" ./cmd/main.go",
-    "vm:hello": "./vm/bin/main --path ./vm/sample/helloworld.bf --clocks 1024 --export ./vm/out/hello.json"
+    "vm:hello": "./vm/bin/main --path ./vm/sample/helloworld.bf --ticks 1024 --export ./vm/out/hello.json",
+    "vm:simple": "./vm/bin/main --num --export ./vm/out/simple.json",
+    "vm:mul": "./vm/bin/main --path ./vm/sample/multiply.bf --ticks 1024 --export ./vm/out/multiply.json"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
@@ -17,5 +19,8 @@
   },
   "dependencies": {
     "circomlib": "^2.0.5"
+  },
+  "prettier": {
+    "printWidth": 120
   }
 }
