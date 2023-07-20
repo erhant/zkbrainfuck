@@ -66,28 +66,23 @@ template Brainfuck(TICKS, MEMSIZE, OPSIZE, INSIZE, OUTSIZE) {
   // effectively halting the program until we run out of ticks
   ops[OPSIZE-1] === 0;
 
-  // create a VM component for each execution step
   component vm[TICKS];
   for (var tick = 0; tick < TICKS - 1; tick++) {
     vm[tick] = VM(MEMSIZE, OPSIZE);
+
     vm[tick].mem <== mems[tick];
     vm[tick].pgm_ctr <== pgm_ctrs[tick];
     vm[tick].mem_ptr <== mem_ptrs[tick];
     vm[tick].input_ptr <== input_ptrs[tick];
     vm[tick].output_ptr <== output_ptrs[tick];
-    vm[tick].in <== ArrayRead(INSIZE)(inputs, input_ptrs[tick]);
     vm[tick].op <== ArrayRead(OPSIZE)(ops, pgm_ctrs[tick]);
+    vm[tick].in <== ArrayRead(INSIZE)(inputs, input_ptrs[tick]);
+    vm[tick].out <== ArrayRead(OUTSIZE)(outputs, output_ptrs[tick]);
 
-    // state transitions
-    mems[tick+1] <== vm[tick].next_mem;
-    pgm_ctrs[tick+1] <== vm[tick].next_pgm_ctr;
-    mem_ptrs[tick+1] <== vm[tick].next_mem_ptr;
-    input_ptrs[tick+1] <== vm[tick].next_input_ptr;
-    output_ptrs[tick+1] <== vm[tick].next_output_ptr;
-
-    // assert output
-    var out = ArrayRead(OUTSIZE)(outputs, output_ptrs[tick]);
-    log("tick:", tick);
-    out === vm[tick].out;
+    vm[tick].next_mem ==> mems[tick+1];
+    vm[tick].next_pgm_ctr ==> pgm_ctrs[tick+1];
+    vm[tick].next_mem_ptr ==> mem_ptrs[tick+1];
+    vm[tick].next_input_ptr ==> input_ptrs[tick+1];
+    vm[tick].next_output_ptr ==> output_ptrs[tick+1];
   }
 }

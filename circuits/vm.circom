@@ -4,33 +4,29 @@ include "./utils.circom";
 include "./functions/bits.circom";
 
 template VM(MEMSIZE, OPSIZE) {
-  // op codes
-  var OP_NOOP = 0;
+  var OP_NOOP    = 0;
   var OP_INC_PTR = 1;
   var OP_DEC_PTR = 2;
   var OP_INC_MEM = 3;
   var OP_DEC_MEM = 4;
-  var OP_INPUT = 5;
-  var OP_OUTPUT = 6;
+  var OP_INPUT   = 5;
+  var OP_OUTPUT  = 6;
   
-  // current state
+  signal input op;           // current operation
   signal input in;           // input at this tick
+  signal input out;          // output at this tick
   signal input pgm_ctr;      // program counter
   signal input mem_ptr;      // memory pointer
   signal input input_ptr;    // input pointer
   signal input output_ptr;   // output pointer
   signal input mem[MEMSIZE]; // current memory layout
-  signal input op;           // operation: operations[pgm_ctr]
 
-  // next state
-  signal output out;               // output
   signal output next_pgm_ctr;      // next program counter
   signal output next_mem_ptr;      // next memory pointer
   signal output next_input_ptr;    // next input pointer
   signal output next_output_ptr;   // next output pointer
   signal output next_mem[MEMSIZE]; // next memory layout
 
-  // operation flags
   signal is_OP_NOOP    <== IsEqual()([OP_NOOP,    op]);
   signal is_OP_INC_PTR <== IsEqual()([OP_INC_PTR, op]);
   signal is_OP_DEC_PTR <== IsEqual()([OP_DEC_PTR, op]);
@@ -86,5 +82,6 @@ template VM(MEMSIZE, OPSIZE) {
   next_mem <== ArrayWrite(MEMSIZE)(mem, mem_ptr, val + delta_val);
   
   // output is only set during its respective op
-  out <== is_OP_OUTPUT * val;
+  var expectedOut = IfElse()(is_OP_OUTPUT, val, out);
+  out === expectedOut;
 }
