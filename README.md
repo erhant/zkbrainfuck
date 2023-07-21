@@ -56,7 +56,7 @@ We will write the Brainfuck VM as an algebraic circuit, meaning that instead of 
 
 | `op`           | Code  | Relevant Constraint                                     |
 | -------------- | ----- | ------------------------------------------------------- |
-| 0              | no-op | `next_pgm_ctr <== next_pgm_ctr`                         |
+| 0              | no-op | `next_pgm_ctr <== pgm_ctr`                              |
 | 1              | `>`   | `next_mem_ptr <== mem_ptr + 1`                          |
 | 2              | `<`   | `next_mem_ptr <== mem_ptr - 1`                          |
 | 3              | `+`   | `next_mem[mem_ptr] <== mem[mem_ptr] + 1`                |
