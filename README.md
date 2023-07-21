@@ -40,23 +40,35 @@ You may find a few example Brainfuck codes in [here](./vm/sample). To run your o
 
 To export the execution of the code, you will need to pass in `--export <path>` option. This will include all the operations, inputs and outputs that were encountered within the program. You can use the `ops`, `inputs` and `outputs` there as circuit signals. Note that you may have to append zeros to match signal sizes depending on the circuit template parameters. We do this [automatically](./tests/utils/index.ts) in our tests.
 
+We have prepared tests with [Circomkit](https://github.com/erhant/circomkit) for 3 different brainfuck programs. You can run them with:
+
+```sh
+yarn test
+```
+
+Of course, you will need to have [Circom](https://docs.circom.io/) installed on your machine.
+
 ## Brainfuck Circuit
 
 We will write the Brainfuck VM as an algebraic circuit, meaning that instead of tokens (like `+` or `-`) we shall operate on numbers. This is the reason we compile Brainfuck code in the first place, the result of compilation is simply an array of non-negative integers. The circuit asserts each "tick" to be valid, eventually running the program until no more ticks are left. Here is a rough demonstration of the instructions:
 
-| `op`     | Code | Constraint                                              |
-| -------- | ---- | ------------------------------------------------------- |
-| 0        |      |                                                         |
-| 1        | `>`  | `next_mem_ptr <== mem_ptr + 1`                          |
-| 2        | `<`  | `next_mem_ptr <== mem_ptr - 1`                          |
-| 3        | `+`  | `next_mem[mem_ptr] <== mem[mem_ptr] + 1`                |
-| 4        | `-`  | `next_mem[mem_ptr] <== mem[mem_ptr] - 1`                |
-| 5        | `,`  | `next_mem[mem_ptr] <== in`                              |
-| 6        | `.`  | `out === mem[mem_ptr]`                                  |
-| `i < op` | `[`  | `next_pgm_ctr <== mem[mem_ptr] == 0 ? op : pgm_ctr + 1` |
-| `i > op` | `]`  | `next_pgm_ctr <== mem[mem_ptr] != 0 ? op : pgm_ctr + 1` |
+| `op`           | Code  | Relevant Constraint                                     |
+| -------------- | ----- | ------------------------------------------------------- |
+| 0              | no-op | `next_pgm_ctr <== next_pgm_ctr`                         |
+| 1              | `>`   | `next_mem_ptr <== mem_ptr + 1`                          |
+| 2              | `<`   | `next_mem_ptr <== mem_ptr - 1`                          |
+| 3              | `+`   | `next_mem[mem_ptr] <== mem[mem_ptr] + 1`                |
+| 4              | `-`   | `next_mem[mem_ptr] <== mem[mem_ptr] - 1`                |
+| 5              | `,`   | `next_mem[mem_ptr] <== in`                              |
+| 6              | `.`   | `out === mem[mem_ptr]`                                  |
+| `pgm_ctr < op` | `[`   | `next_pgm_ctr <== mem[mem_ptr] == 0 ? op : pgm_ctr + 1` |
+| `pgm_ctr > op` | `]`   | `next_pgm_ctr <== mem[mem_ptr] != 0 ? op : pgm_ctr + 1` |
 
-To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with simple equality checks, and jump targets can be assumed safe. Brainfuck programs usually terminate when there is no more instructions left; however, we can't do that in our circuit. In particular, the circuit will operate until each "tick" is processed, whether there are any ops left or not is not of concern. For this reason, the compiled code will have a no-op (`0`) at the end, corresponding to "terminating the program". In a no-op, the program counter is NOT incremented, thereby consuming ticks at that position until the circuit is finished.
+To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with simple equality checks, and jump targets can be assumed safe. Brainfuck programs usually terminate when there is no more instructions left; however, we can't do that in our circuit.
+
+In particular, the circuit operates until each "tick" is processed, whether there are any ops left or not is not of concern. For this reason, the compiled code will have a zero at the end, corresponding to "terminating the program". In a no-op, the program counter is NOT incremented, thereby consuming ticks at that position until the circuit is finished.
+
+By default, all signals stay the same from a tick to next, except the program counter which is incremented.
 
 ### Parameters
 
@@ -93,17 +105,21 @@ To prepare this object as a circuit input, we append necessary zeros to inputs, 
 
 ### Constraints
 
-todo: tests will give us the results here
+We have some example constraint counts [here](./CONSTRAINTS.md). We can infer the following results:
 
-## Testing
+- x2 `TICKS` results in ~x2 constraints
+- x2 `OPSIZE` results in ~x1.5 constraints
+- x2 `MEMSIZE` results in ~x1.3 constraints
 
-Tests have been written with [Circomkit](https://github.com/erhant/circomkit). You can run tests via:
+We have an example circuit parameter ready in [circuits.json](./circuits.json): 1000 ticks, 8 memory size, 200 ops, 5 inputs, 15 outputs. This circuit results in close to **1 million** constraints. You can compile it via:
 
 ```sh
-yarn test
+npx circomkit compile brainfuck
 ```
 
-It will compile & run the circuit for 3 different programs.
+There could be further optimizations regarding `ArrayRead`. For example, we know that the maximum value an `input_ptr` or `output_ptr` can take a tick `t` is `t-1`. Therefore, instead of reading the entire array each tick, they can read from `0..(t-1)` thereby halving the number of constraints until `t == INSIZE` or `t == OUTSIZE` respectively.
+
+Since this work is just for fun, constraint golfing is left for later at more times to kill.
 
 ## Drawbacks
 
@@ -113,7 +129,7 @@ The second problem is that due to the constraint count, a single huge circuit wi
 
 Third drawback is that, who even writes Brainfuck?
 
-## Honorable Mentions
+## See Also
 
 - [Typefuck](https://github.com/susisu/typefuck) is a Brainfuck interpreter using the type-system of Typescript alone.
 - [How Brainfuck Works](https://gist.github.com/roachhd/dce54bec8ba55fb17d3a) is a great Gist about Brainfuck.

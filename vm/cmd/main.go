@@ -12,12 +12,12 @@ import (
 
 func main() {
 	code := flag.String("code", ",[.-]", "brainfuck code")
-	path := flag.String("path", "", "path to file with brainfuck code")
 	export := flag.String("export", "", "path to export program information")
-	isNumFmt := flag.Bool("num", false, "use numbers for input & output instead of runes")
-	maxTicks := flag.Uint("ticks", 2048, "maximum number of ticks")
+	path := flag.String("path", "", "path to file with brainfuck code")
 	memorySize := flag.Uint("memory", 128, "memory size")
 	opsize := flag.Uint("opsize", 0, "operations size")
+	maxTicks := flag.Uint("ticks", 2048, "maximum number of ticks")
+	isNumFmt := flag.Bool("num", false, "use numbers for input & output instead of runes")
 	flag.Parse()
 
 	// if export is given, we need to record program execution
@@ -42,6 +42,12 @@ func main() {
 		fmt.Println()
 		log.Fatalf("COMPILER ERROR: %s", err)
 	}
+
+	fmt.Print("{")
+	for _, op := range operations {
+		fmt.Printf("%d, ", op)
+	}
+	fmt.Print("}\n")
 
 	if programExecution, err := vm.Execute(operations, *isNumFmt, *memorySize, *maxTicks, record); err != nil {
 		fmt.Println()

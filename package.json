@@ -1,4 +1,5 @@
 {
+  "name": "zkbrainfuck",
   "author": "erhant",
   "license": "MIT",
   "private": true,

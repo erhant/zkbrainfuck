@@ -14,6 +14,7 @@ include "./common.circom";
 //
 // Outputs:
 // - `out`: value at `in[index]`
+//
 template ArrayRead(n) {
   signal input in[n];
   signal input index;
@@ -40,6 +41,7 @@ template ArrayRead(n) {
 //
 // Outputs:
 // - `out`: array
+//
 template ArrayWrite(n) {
   signal input in[n];
   signal input index;
@@ -62,6 +64,7 @@ template ArrayWrite(n) {
 //
 // Outputs:
 // - `out`: sum of all values in `in`
+//
 template Sum(n) {
   signal input in[n];
   signal output out;

@@ -1,8 +1,8 @@
 {
-  "bf": {
+  "brainfuck": {
     "file": "brainfuck",
     "template": "Brainfuck",
-    "params": [30, 5, 15, 1, 5],
+    "params": [1000, 8, 200, 5, 15],
     "pubs": ["outputs"]
   }
 }

@@ -1,3 +1,5 @@
+(code from stackoverflow /a/5607721)
+
 ,>,< input numbers at cell #1 #2
 [
  > go to cell #2

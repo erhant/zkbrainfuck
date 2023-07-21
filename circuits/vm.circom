@@ -8,9 +8,14 @@ include "./functions/bits.circom";
 // Given the current state (such as program counter, memory pointer etc.)
 // it will compute the next state.
 //
-// The output is not "assigned to" but instead "asserted equal". This is because
-// we run into "signal already assigned" error in the prior case. Outputting something
-// is rather equivalent to getting it as a public input and asserting equality.
+// The output is not "assigned to" but instead "asserted equal". This is 
+// because we run into "signal already assigned" error in the prior case.
+// Outputting something is rather equivalent to getting it as a public 
+// input and asserting equality.
+//
+// OPSIZE parameter is only required to compute number of bits required 
+// for the LessThan comparison.
+//
 template VM(MEMSIZE, OPSIZE) {
   var OP_NOOP    = 0; //    no operation
   var OP_INC_PTR = 1; // >  move pointer right
@@ -42,8 +47,6 @@ template VM(MEMSIZE, OPSIZE) {
   signal is_OP_DEC_MEM <== IsEqual()([OP_DEC_MEM, op]);
   signal is_OP_INPUT   <== IsEqual()([OP_INPUT,   op]);
   signal is_OP_OUTPUT  <== IsEqual()([OP_OUTPUT,  op]);
-
-  // we expect this sum to result in 1 or 0 due to distinct IsEquals above
   var is_OP = Sum(7)([
     is_OP_NOOP,
     is_OP_INC_PTR,
@@ -54,7 +57,9 @@ template VM(MEMSIZE, OPSIZE) {
     is_OP_OUTPUT
   ]);
 
-  // if none of the OPs are matched, we must be looping
+  // if none of the OPs are matched, we must be looping.
+  // we can be sure that is_OP is binary, because of disjoint
+  // equality checks above.
   signal is_LOOP <== 1 - is_OP;
 
   // currently pointed value `mem[mem_ptr]` is referred to as `val`
@@ -70,25 +75,25 @@ template VM(MEMSIZE, OPSIZE) {
   signal is_LOOP_JUMP     <== Sum(2)([is_LOOP_BEGIN * val_is0, is_LOOP_END * (1 - val_is0)]);
   signal jmp_offset       <== is_LOOP_JUMP * (op - 1 - pgm_ctr);
 
-  // program counter is incremented by default
+  // program counter is incremented by default.
   // if there is a loop, we add `destination - 1 - pgm_ctr` to cancel incremention
-  // and set the counter to target
-  // if no-op, we cancel the incremention to cause program to halt
+  // and set the counter to target.
+  // if no-op, we cancel the incremention to cause program to halt.
   next_pgm_ctr <== pgm_ctr + 1 + jmp_offset - is_OP_NOOP;
 
-  // memory pointer stays the same by default
-  // otherwise it is only incremented or decremented
+  // memory pointer stays the same by default.
+  // otherwise it is only incremented or decremented.
   next_mem_ptr <== mem_ptr + is_OP_INC_PTR - is_OP_DEC_PTR;
 
-  // input and output pointers stay the same by default
-  // if there is an input or output, the respective pointer is incremented
+  // input and output pointers stay the same by default.
+  // if there is an input or output, the respective pointer is incremented.
   next_input_ptr <== input_ptr + is_OP_INPUT;
   next_output_ptr <== output_ptr + is_OP_OUTPUT;
 
   // memory layout will be updated by setting the currently pointed value
-  // by default, the same value is written to the same place
-  // if needed, that value is incremented, decremented
-  // during an input, we add `in - val` to `val` to obtain `in`
+  // by default, the same value is written to the same place.
+  // if needed, that value is incremented, decremented.
+  // during an input, we add `in - val` to `val` to obtain `in`.
   var delta_val = Sum(3)([
     is_OP_INC_MEM, 
     -is_OP_DEC_MEM, 
@@ -96,9 +101,9 @@ template VM(MEMSIZE, OPSIZE) {
   ]);
   next_mem <== ArrayWrite(MEMSIZE)(mem, mem_ptr, val + delta_val);
   
-  // expected output is provided by the prover
+  // expected output is provided by the prover.
   // at the output operation, the actual output is compared
-  // to the expect one, failing if they do not match
+  // to the expect one, failing if they do not match.
   var tick_out = IfElse()(is_OP_OUTPUT, val, out);
   out === tick_out;
 

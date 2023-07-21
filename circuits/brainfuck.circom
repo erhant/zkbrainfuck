@@ -2,6 +2,7 @@ pragma circom 2.1.0;
 
 include "./vm.circom";
 
+//
 //       _---~~(~~-_.
 //     _{        )   )          Brainfuck ZKVM
 //   ,   ) -~~- ( ,-' )_        for Circom v2.1.0
@@ -48,7 +49,8 @@ template Brainfuck(TICKS, MEMSIZE, OPSIZE, INSIZE, OUTSIZE) {
   signal output_ptrs[TICKS];
   signal mems[TICKS][MEMSIZE];
 
-  // ops must be zero-padded
+  // ops must be zero-padded for the first 7 slots
+  // corresponding to 1 no-op + 6 ops
   for (var i = 0; i < 7; i++) {
     ops[i] === 0;
   }
@@ -59,7 +61,7 @@ template Brainfuck(TICKS, MEMSIZE, OPSIZE, INSIZE, OUTSIZE) {
   mem_ptrs[0] <== 0;
   input_ptrs[0] <== 0;
   output_ptrs[0] <== 0;
-  // entire memory is zeros at first
+  // entire memory is zeros at the start
   for (var i = 0; i < MEMSIZE; i++) {
     mems[0][i] <== 0;
   }

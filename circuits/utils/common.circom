@@ -7,9 +7,10 @@ pragma circom 2.1.0;
 //
 // Outputs:
 // - `out`: 1 if `in[0] == in[1]`, 0 otherwise
+//
 template IsEqual() {
   signal input in[2];
-  signal output {bool} out;
+  signal output {bit} out;
 
   out <== IsZero()(in[1] - in[0]);
 }
@@ -21,9 +22,10 @@ template IsEqual() {
 //
 // Outputs:
 // - `out`: 1 if `in == 0`, 0 otherwise
+//
 template IsZero() {
   signal input in;
-  signal output {bool} out;
+  signal output {bit} out;
 
   signal inv <-- in != 0 ? (1 / in) : 0;
 
@@ -40,8 +42,9 @@ template IsZero() {
 //
 // Outputs:
 // - `out`: equals `cond ? ifTrue : ifFalse`
+//
 template IfElse() {
-  signal input cond;
+  signal input {bit} cond;
   signal input ifTrue;
   signal input ifFalse;
   signal output out;
@@ -59,6 +62,7 @@ template IfElse() {
 //
 // Outputs:
 // - `out`: 1 if `in[0] < in[1]`, 0 otherwise.
+//
 template LessThan(n) {
   assert(n <= 252);
   signal input in[2];
@@ -81,10 +85,11 @@ template LessThan(n) {
 //
 // Outputs:
 // - `out`: an array of bits
+//
 template Num2Bits(n) {
   assert(n < 254);
   signal input in;
-  signal output out[n];
+  signal output {bit} out[n];
 
   var lc = 0;
   var bit_value = 1;
