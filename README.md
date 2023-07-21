@@ -2,7 +2,7 @@
 
 > A [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck) zkVM to prove correct execution of a Brainfuck program with secret inputs.
 
-Brainfuck is a Turing-complete language that has only 8 operations defined as follows:
+Brainfuck is a Turing-complete language that has only 8 operations, shown in the table below. Any other symbol is ignored, and may effectively be used as comments.
 
 | Code | Operation                                        |
 | ---- | ------------------------------------------------ |
@@ -10,12 +10,14 @@ Brainfuck is a Turing-complete language that has only 8 operations defined as fo
 | `<`  | decrement data pointer                           |
 | `+`  | increment pointed data                           |
 | `-`  | decrement pointed data                           |
-| `.`  | read from pointed data                           |
 | `,`  | write to pointed data                            |
+| `.`  | read from pointed data                           |
 | `[`  | if pointed data is zero, `goto` matching `]`     |
 | `]`  | if pointed data is non-zero, `goto` matching `[` |
 
-Any other symbol is ignored, and may effectively be used as comments. We have written a smol Brainfuck VM in Go, which you can find under the [vm](./vm/) folder. Assuming you have Go installed, you can build the binary simply via:
+## Usage
+
+We have written a small Brainfuck compiler & executer in Go, which you can find under the [vm](./vm/) folder. Assuming you have Go installed, you can build the binary simply via:
 
 ```sh
 yarn vm:build
@@ -34,44 +36,82 @@ yarn vm:run
   -num             # use numbers for input & output instead of runes
 ```
 
-You may find a few example Brainfuck codes in [here](./vm/sample). To run them, pass their paths via the `-path` option. Our VM does not allow for underflows, neither for the program counter or memory pointer. The default code `,[-]` simply takes an input and counts down, terminating when it reaches 0.
+You may find a few example Brainfuck codes in [here](./vm/sample). To run your own Brainfuck code, provide its path to the `--path` option. If your inputs & outputs are numbers (not characters) make sure you also pass in the `--num` option. If the default tick amount is not enough, increase it with `--tick <amount>`.
 
-### From Code to Integers
+To export the execution of the code, you will need to pass in `--export <path>` option. This will include all the operations, inputs and outputs that were encountered within the program. You can use the `ops`, `inputs` and `outputs` there as circuit signals. Note that you may have to append zeros to match signal sizes depending on the circuit template parameters. We do this [automatically](./tests/utils/index.ts) in our tests.
 
-...
+## Brainfuck Circuit
 
-## Proving Execution
+We will write the Brainfuck VM as an algebraic circuit, meaning that instead of tokens (like `+` or `-`) we shall operate on numbers. This is the reason we compile Brainfuck code in the first place, the result of compilation is simply an array of non-negative integers. The circuit asserts each "tick" to be valid, eventually running the program until no more ticks are left. Here is a rough demonstration of the instructions:
 
-TODO
+| `op`     | Code | Constraint                                              |
+| -------- | ---- | ------------------------------------------------------- |
+| 0        |      |                                                         |
+| 1        | `>`  | `next_mem_ptr <== mem_ptr + 1`                          |
+| 2        | `<`  | `next_mem_ptr <== mem_ptr - 1`                          |
+| 3        | `+`  | `next_mem[mem_ptr] <== mem[mem_ptr] + 1`                |
+| 4        | `-`  | `next_mem[mem_ptr] <== mem[mem_ptr] - 1`                |
+| 5        | `,`  | `next_mem[mem_ptr] <== in`                              |
+| 6        | `.`  | `out === mem[mem_ptr]`                                  |
+| `i < op` | `[`  | `next_pgm_ctr <== mem[mem_ptr] == 0 ? op : pgm_ctr + 1` |
+| `i > op` | `]`  | `next_pgm_ctr <== mem[mem_ptr] != 0 ? op : pgm_ctr + 1` |
 
-| `op`     | Code | Operation                                            |
-| -------- | ---- | ---------------------------------------------------- |
-| 0        |      | ignore                                               |
-| 1        | `>`  | `_p <== p + 1` and `_i <== i + 1`                    |
-| 2        | `<`  | `_p <== p - 1` and `_i <== i + 1`                    |
-| 3        | `+`  | `_m[p] <== m[p] + 1` and `_i <== i + 1`              |
-| 4        | `-`  | `_m[p] <== m[p] - 1` and `_i <== i + 1`              |
-| 5        | `.`  | `out   <== m[p]` and `_i <== i + 1`                  |
-| 6        | `,`  | `_m[p] <== in` and `_i <== i + 1`                    |
-| `i < op` | `[`  | if `m[p] == 0` then `_i' <== op` else `_i <== i + 1` |
-| `i > op` | `]`  | if `m[p] != 0` then `_i' <== op` else `_i <== i + 1` |
+To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with simple equality checks, and jump targets can be assumed safe. Brainfuck programs usually terminate when there is no more instructions left; however, we can't do that in our circuit. In particular, the circuit will operate until each "tick" is processed, whether there are any ops left or not is not of concern. For this reason, the compiled code will have a no-op (`0`) at the end, corresponding to "terminating the program". In a no-op, the program counter is NOT incremented, thereby consuming ticks at that position until the circuit is finished.
 
-To disambugate `op` values from jump targets, compiled code will be prepended with 7 zeros, one for each `op`. This way, `op` checks can be made with number comparisons and jump targets are safe. The circuit only has to assert that
+### Parameters
 
-## Constraints
+The Brainfuck circuit is instantiated with the following parameters:
 
-Below are some example instantations with their constraint counts (using optimization level 1). With optimization level 2, one can get rid of linear constraints at the cost of a sligthly longer compilation time.
+- `TICKS`: number of ticks to run
+- `MEMSIZE`: maximum memory size
+- `OPSIZE`: maximum number of operations
+- `INSIZE`: maximum number of inputs
+- `OUTSIZE`: maximum number of outputs
 
-| Ticks | Memory Size | Operation Count | Non-linear Constraints | Linear Constraints |
-| ----- | ----------- | --------------- | ---------------------- | ------------------ |
-| 1024  | 256         | 20              | 1.65m                  | 565k               |
-| 256   | 256         | 20              | 414k                   | 141k               |
-| 1024  | 64          | 20              | 486k                   | 171k               |
-| 256   | 64          | 20              | 120k                   | 43k                |
-| 256   | 64          | 80              | 167k                   | 58k                |
-| 2048  | 32          | 60              | 767k                   | 274k               |
+Note that we particularly use the word "maximum" because you do not necessarily have to provide exactly that many inputs, for any input with less elements for that parameter is assumed to be appended zeros. Our circuit has three inputs:
 
-Constraints grow in linear with the tick size and memory size. Operation count grows the circuit sub-linearly.
+- `ops`: compiled code
+- `inputs`: inputs in the order they appear
+- `outputs`: outputs in the order they appear
+
+For example, the object below belongs to the execution of `,[.-]`. Notice the prepended 7 zeros and 1 extra zero at the end for `op`. In this particular execution, the user has given the input `5` and got the output `5 4 3 2 1`. Extra information such as memory usage and ticks is also included here.
+
+```json
+{
+  "ticks": 22,
+  "memsize": 0,
+  "opsize": 13,
+  "insize": 1,
+  "outsize": 5,
+  "ops": [0, 0, 0, 0, 0, 0, 0, 5, 11, 6, 4, 8, 0],
+  "inputs": [5],
+  "outputs": [5, 4, 3, 2, 1]
+}
+```
+
+To prepare this object as a circuit input, we append necessary zeros to inputs, outputs, and ops to match `INSIZE`, `OUTSIZE` and `OPSIZE` respectively. We also check the tick count and memory size to see if we can safely use the circuit.
+
+### Constraints
+
+todo: tests will give us the results here
+
+## Testing
+
+Tests have been written with [Circomkit](https://github.com/erhant/circomkit). You can run tests via:
+
+```sh
+yarn test
+```
+
+It will compile & run the circuit for 3 different programs.
+
+## Drawbacks
+
+First and foremost, the constraint count is HUGE. This is mostly because of the `ArrayRead` circuit which reads from an array with unknown index. Doing so requires an entire pass over the array with an equality check for each index. For small input arrays this should not be too much of a problem, but inputs may change from time to time.
+
+The second problem is that due to the constraint count, a single huge circuit with many ticks, sufficient memory size, input size, and output size would be rather expensive (although possible). We believe folding may be used to fold each tick in a single recursive proof, perhaps using a tool such as Nova Scotia.
+
+Third drawback is that, who even writes Brainfuck?
 
 ## Honorable Mentions
 

@@ -2,7 +2,7 @@
   "bf": {
     "file": "brainfuck",
     "template": "Brainfuck",
-    "params": [256, 32, 60, 10, 10],
+    "params": [30, 5, 15, 1, 5],
     "pubs": ["outputs"]
   }
 }

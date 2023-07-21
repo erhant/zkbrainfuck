@@ -1,25 +1,6 @@
 pragma circom 2.1.0;
 
-include "circomlib/circuits/comparators.circom";
-include "./functions/bits.circom";
-
-// If-else branching.
-//
-// Inputs:
-// - `cond`: a boolean condition
-// - `ifTrue`: signal to be returned if condition is true
-// - `ifFalse`: signal to be returned if condition is false
-//
-// Outputs:
-// - `out`: equals `cond ? ifTrue : ifFalse`
-template IfElse() {
-  signal input cond;
-  signal input ifTrue;
-  signal input ifFalse;
-  signal output out;
-  
-  out <== cond * (ifTrue - ifFalse) + ifFalse;
-}
+include "./common.circom";
 
 // Array access `out <== in[index]`.
 // If `index >= n`, then this returns 0

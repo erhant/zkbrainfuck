@@ -8,7 +8,7 @@
     "vm:build": "cd vm && go build -o ./bin/main -ldflags \"-s -w\" ./cmd/main.go",
     "vm:hello": "./vm/bin/main --path ./vm/sample/helloworld.bf --export ./vm/out/hello.json",
     "vm:countdown": "./vm/bin/main --path ./vm/sample/countdown.bf --num --export ./vm/out/countdown.json",
-    "vm:mul": "./vm/bin/main --path ./vm/sample/multiply.bf --export ./vm/out/multiply.json"
+    "vm:mul": "./vm/bin/main --path ./vm/sample/multiply.bf --num --export ./vm/out/multiply.json"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
@@ -16,9 +16,6 @@
     "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
-  },
-  "dependencies": {
-    "circomlib": "^2.0.5"
   },
   "prettier": {
     "printWidth": 120

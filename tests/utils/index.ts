@@ -1,3 +1,4 @@
+import { Circomkit } from "circomkit";
 import type { CircuitExecution, CircuitParameters, ProgramExecution } from "../types";
 
 export function prepareProgramForCircuit(program: ProgramExecution, circuit: CircuitParameters): CircuitExecution {
@@ -13,3 +14,9 @@ export function prepareProgramForCircuit(program: ProgramExecution, circuit: Cir
     outputs: program.outputs.concat(Array.from({ length: circuit.outsize - program.outsize }, () => 0)),
   };
 }
+
+export const circomkit = new Circomkit({
+  verbose: false,
+  optimization: 1, // using 2 makes compiling much longer
+  inspect: true,
+});

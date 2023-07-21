@@ -1,7 +1,16 @@
 pragma circom 2.1.0;
 
-include "./utils.circom";
+include "./utils/arrays.circom";
+include "./utils/common.circom";
+include "./functions/bits.circom";
 
+// The VM template handles a single "tick" of the Brainfuck code.
+// Given the current state (such as program counter, memory pointer etc.)
+// it will compute the next state.
+//
+// The output is not "assigned to" but instead "asserted equal". This is because
+// we run into "signal already assigned" error in the prior case. Outputting something
+// is rather equivalent to getting it as a public input and asserting equality.
 template VM(MEMSIZE, OPSIZE) {
   var OP_NOOP    = 0; //    no operation
   var OP_INC_PTR = 1; // >  move pointer right
@@ -45,15 +54,15 @@ template VM(MEMSIZE, OPSIZE) {
     is_OP_OUTPUT
   ]);
 
-  // if no OP is matched, we must be looping
+  // if none of the OPs are matched, we must be looping
   signal is_LOOP <== 1 - is_OP;
 
   // currently pointed value `mem[mem_ptr]` is referred to as `val`
   signal val <== ArrayRead(MEMSIZE)(mem, mem_ptr);
   signal val_is0 <== IsZero()(val);
 
-  // determine jump destination; since program counter is incremented
-  // we can jump by adding (destination - 1 - pgm_ctr) to the default value
+  // determine jump destination; since program counter is incremented by default,
+  // we can jump by adding (destination - 1 - pgm_ctr) to it
   // if not, the offset is kept to be 0
   signal is_pgm_ctr_lt_op <== LessThan(numBits(OPSIZE)+1)([pgm_ctr, op]);
   signal is_LOOP_BEGIN    <== is_LOOP * is_pgm_ctr_lt_op;
@@ -62,7 +71,7 @@ template VM(MEMSIZE, OPSIZE) {
   signal jmp_offset       <== is_LOOP_JUMP * (op - 1 - pgm_ctr);
 
   // program counter is incremented by default
-  // if there is a loop, we add `jump_target - 1` to cancel incremention
+  // if there is a loop, we add `destination - 1 - pgm_ctr` to cancel incremention
   // and set the counter to target
   // if no-op, we cancel the incremention to cause program to halt
   next_pgm_ctr <== pgm_ctr + 1 + jmp_offset - is_OP_NOOP;
@@ -87,9 +96,11 @@ template VM(MEMSIZE, OPSIZE) {
   ]);
   next_mem <== ArrayWrite(MEMSIZE)(mem, mem_ptr, val + delta_val);
   
-  // output is only set during its respective op
-  var expectedOut = IfElse()(is_OP_OUTPUT, val, out);
-  out === expectedOut;
+  // expected output is provided by the prover
+  // at the output operation, the actual output is compared
+  // to the expect one, failing if they do not match
+  var tick_out = IfElse()(is_OP_OUTPUT, val, out);
+  out === tick_out;
 
   // in case of emergency, break glass
   // log("op:", op, "\tval", val, "\tp:", mem_ptr, "\ti:", pgm_ctr);
