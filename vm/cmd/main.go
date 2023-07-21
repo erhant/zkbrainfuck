@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"zkbrainfuck/pkg/compiler"
@@ -39,27 +38,19 @@ func main() {
 
 	operations, err := compiler.Compile(*code, *opsize)
 	if err != nil {
-		fmt.Println()
-		log.Fatalf("COMPILER ERROR: %s", err)
+		log.Fatalf("\nCOMPILER ERROR: %s", err)
 	}
-
-	fmt.Print("{")
-	for _, op := range operations {
-		fmt.Printf("%d, ", op)
-	}
-	fmt.Print("}\n")
 
 	if programExecution, err := vm.Execute(operations, *isNumFmt, *memorySize, *maxTicks, record); err != nil {
-		fmt.Println()
-		log.Fatalf("RUNTIME ERROR: %s", err)
+		log.Fatalf("\nRUNTIME ERROR: %s", err)
 	} else {
 		if record {
 			if err := export_program_execution(*export, programExecution); err != nil {
-				log.Fatalf("EXPORT ERROR: %s", err)
+				log.Fatalf("\nEXPORT ERROR: %s", err)
 			}
 		}
 	}
-	fmt.Println()
+
 }
 
 func export_program_execution(path string, trace *vm.ProgramExecution) error {

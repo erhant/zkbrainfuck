@@ -3,7 +3,7 @@ import type { TestCase } from "../types";
 export const countdown: TestCase = {
   program: {
     ticks: 22,
-    memsize: 0,
+    memsize: 1,
     opsize: 13,
     insize: 1,
     outsize: 5,

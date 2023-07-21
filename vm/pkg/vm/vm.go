@@ -89,7 +89,7 @@ func Execute(operations []uint, fmtNumbers bool, memorySize uint, ticks uint, re
 
 		case compiler.OP_INPUT:
 			var in uint
-			fmt.Print("> ")
+			fmt.Print("\ninput: ")
 			if _, err := fmt.Scanf(inFormat, &in); err != nil {
 				return nil, errors.New("could not read user input")
 			}
@@ -124,12 +124,12 @@ func Execute(operations []uint, fmtNumbers bool, memorySize uint, ticks uint, re
 		return nil, errors.New("maximum ticks reached before termination")
 	}
 
-	fmt.Println("\n(done in", tick, "ticks)")
+	fmt.Println("\n(done in", tick, "ticks and", max_mem_ptr+1, "memory usage)")
 
 	if record {
 		return &ProgramExecution{
 			tick,
-			max_mem_ptr,
+			max_mem_ptr + 1,
 			len(operations),
 			len(inputs),
 			len(outputs),

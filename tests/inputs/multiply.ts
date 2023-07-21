@@ -3,7 +3,7 @@ import type { TestCase } from "../types";
 export const multiply: TestCase = {
   program: {
     ticks: 1672,
-    memsize: 3,
+    memsize: 4,
     opsize: 41,
     insize: 2,
     outsize: 1,

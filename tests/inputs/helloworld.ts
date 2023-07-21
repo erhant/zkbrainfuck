@@ -3,7 +3,7 @@ import type { TestCase } from "../types";
 export const helloworld: TestCase = {
   program: {
     ticks: 972,
-    memsize: 6,
+    memsize: 7,
     opsize: 138,
     insize: 0,
     outsize: 13,

@@ -36,7 +36,9 @@ yarn vm:run
   -num             # use numbers for input & output instead of runes
 ```
 
-You may find a few example Brainfuck codes in [here](./vm/sample). To run your own Brainfuck code, provide its path to the `--path` option. If your inputs & outputs are numbers (not characters) make sure you also pass in the `--num` option. If the default tick amount is not enough, increase it with `--tick <amount>`.
+You may find a few example Brainfuck codes in [here](./vm/sample). To run your own Brainfuck code, provide its path to the `--path` option. If your inputs & outputs are numbers (not characters) make sure you also pass in the `--num` option.
+
+The VM has a maximum number of ticks to prevent infinite loops. If the default tick amount is not enough, increase it with `--tick <amount>`.
 
 To export the execution of the code, you will need to pass in `--export <path>` option. This will include all the operations, inputs and outputs that were encountered within the program. You can use the `ops`, `inputs` and `outputs` there as circuit signals. Note that you may have to append zeros to match signal sizes depending on the circuit template parameters. We do this [automatically](./tests/utils/index.ts) in our tests.
 
@@ -121,7 +123,7 @@ There could be further optimizations regarding `ArrayRead`. For example, we know
 
 Since this work is just for fun, constraint golfing is left for later at more times to kill.
 
-## Drawbacks
+### Drawbacks
 
 First and foremost, the constraint count is HUGE. This is mostly because of the `ArrayRead` circuit which reads from an array with unknown index. Doing so requires an entire pass over the array with an equality check for each index. For small input arrays this should not be too much of a problem, but inputs may change from time to time.
 

@@ -2,7 +2,7 @@ import type { WitnessTester } from "circomkit";
 import { circomkit, prepareProgramForCircuit } from "./utils";
 import { helloworld, countdown, multiply } from "./inputs";
 
-describe("zkBrainfuck tests", () => {
+describe("zkbrainfuck", () => {
   [multiply, countdown, helloworld].map(({ program, params, name }) =>
     describe(name, () => {
       let circuit: WitnessTester<["ops", "inputs", "outputs"]>;
@@ -14,7 +14,7 @@ describe("zkBrainfuck tests", () => {
           file: "brainfuck",
           template: "Brainfuck",
           params: [params.ticks, params.memsize, params.opsize, params.insize, params.outsize],
-          pubs: ["outputs"],
+          pubs: ["outputs", "ops"],
         });
         console.timeEnd("compiled in");
         console.log("constraints:", await circuit.getConstraintCount());

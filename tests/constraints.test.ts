@@ -22,7 +22,7 @@ ticks.forEach((tick) => {
   });
 });
 
-describe("constraint tests", () => {
+describe("constraints", () => {
   paramCombinations.map((params, i) =>
     describe(`\nticks: ${params.ticks}\tmem: ${params.memsize}\tops: ${params.opsize}`, () => {
       let circuit: WitnessTester<["ops", "inputs", "outputs"]>;
